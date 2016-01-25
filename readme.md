@@ -1,15 +1,13 @@
-# tsdm
+# tsdm (WIP)
 
-**WIP**
-
-(next generation) **T**ype**S**cript **d**eclaration **m**anager. 
+Next generation **TypeScript declaration manager** that leverages power of NPM
+instead of reinventing the wheel.  
 
 ## Why?
-* No reliance on [DefinitelyTyped/DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped) GitHub repo.   
-* No `tsd.json`, `.tsdrc`, etc. 
+* No reliance on [DefinitelyTyped/DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped) GitHub repo. No PRs to send. No PRs to accept. 
+* No `tsd.json`, `.tsdrc` for proxy settings that you have already specified for `npm`, etc. 
 * No [fear of hitting GitHub rate-limit](https://github.com/DefinitelyTyped/tsd#i-hit-the-github-rate-limit-now-what).
-* No need to commit `typings/**` or full of obscure hashes `tsd.json`.
-* No wheel re-invention. 
+* No need to commit `typings/**` or [full of obscure hashes](https://github.com/DefinitelyTyped/tsd/blob/master/tsd.json) `tsd.json`.
 * Sane version management.
 * Nothing to learn. If you know how to use `npm` - you're pretty much all set.
 
@@ -35,7 +33,7 @@ tsdm i
 
 ## Demo
 
-**COMMING**
+[shyiko/typescript-boilerplate](https://github.com/shyiko/typescript-boilerplate)
 
 ## Recommendations
 
