@@ -1,0 +1,50 @@
+#!/usr/bin/env node
+
+var tsdm = require('../src');
+var pkgDir = require('pkg-dir');
+var yargs = require('yargs')
+  .usage('Usage: tsdm <command>')
+  .command('ls', 'List installed typings (aliases: list, la, ll)')
+  .command('install', 'Update `typings/tsd.d.ts` (aliases: i)')
+  .help('h').alias('h', 'help')
+  .version(function () { return require('../package').version; })
+  .strict();
+
+function fail(err) {
+  console.error(err.stack);
+  process.exit(4);
+}
+
+pkgDir(process.cwd())
+  .then(function (path) {
+    var command = process.argv[2];
+    switch (command) {
+      case 'ls':
+      case 'list':
+      case 'la':
+      case 'll':
+        tsdm.list({path: path}, function (err, data) {
+          if (err) {
+            fail(err);
+          }
+          data.forEach(function (pkg) {
+            console.log('* ' + pkg._id);
+          });
+        });
+        break;
+      case 'i':
+      case 'install':
+        tsdm.install({path: path}, function (err) {
+          if (err) {
+            fail(err);
+          }
+        });
+        break;
+      default:
+        yargs.showHelp();
+        if (command) {
+          console.error('Unknown command `' + command + '`.');
+        }
+        process.exit(3);
+    }
+  });
