@@ -7,10 +7,11 @@
 ## Why?
 * No reliance on [DefinitelyTyped/DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped) GitHub repo.   
 * No `tsd.json`, `.tsdrc`, etc. 
-* No fear of hitting GitHub rate-limit.
+* No [fear of hitting GitHub rate-limit](https://github.com/DefinitelyTyped/tsd#i-hit-the-github-rate-limit-now-what).
 * No need to commit `typings/**` or full of obscure hashes `tsd.json`.
 * No wheel re-invention. 
 * Sane version management.
+* Nothing to learn. If you know how to use `npm` - you're pretty much all set.
 
 ## Installation
 
