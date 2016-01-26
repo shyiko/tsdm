@@ -3,9 +3,13 @@
 var tsdm = require('../src');
 var pkgDir = require('pkg-dir');
 var yargs = require('yargs')
-  .usage('Usage: tsdm <command>')
+  .usage('TypeScript declaration manager (https://github.com/shyiko/tsdm)' +
+    '\n\nUsage: tsdm <command>')
   .command('ls', 'List installed typings (aliases: list, la, ll)')
-  .command('install', 'Update `typings/tsd.d.ts` (aliases: i)')
+  .command('install', 'Generate `typings/tsd.d.ts` ' +
+    '(required only for packages that are not tsdm-compatible) (aliases: i)')
+  .command('rewire', 'Wire declaration providers in ' +
+    '(should be called after `npm install`) (aliases: r)')
   .help('h').alias('h', 'help')
   .version(function () { return require('../package').version; })
   .strict();
@@ -28,13 +32,22 @@ pkgDir(process.cwd())
             fail(err);
           }
           data.forEach(function (pkg) {
-            console.log('* ' + pkg._id);
+            console.log('* ' + pkg._id + (pkg.typingsTarget ?
+              ' (target: ' + pkg.typingsTarget + ')' : ''));
           });
         });
         break;
       case 'i':
       case 'install':
         tsdm.install({path: path}, function (err) {
+          if (err) {
+            fail(err);
+          }
+        });
+        break;
+      case 'r':
+      case 'rewire':
+        tsdm.rewire({path: path}, function (err) {
           if (err) {
             fail(err);
           }

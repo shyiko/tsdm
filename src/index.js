@@ -1,21 +1,22 @@
 var rpt = require('read-package-tree'); // npm/read-installed?
 var mkdirp = require('mkdirp');
 var Promise = require('pinkie-promise');
+var resolveModule = require('resolve');
+var pkgDir = require('pkg-dir');
 var fs = require('fs');
 var path = require('path');
 
-// todo: `tsdm install declaration-package --save` which updates typings/
-// tsd.d.ts automatically
-
+// todo: require('debuglog')('tsdm') for debug logging
+// todo: `tsdm install --save` which updates typings/tsd.d.ts automatically
 // todo: `prune` as an alias for `install`?
-
 // todo: .tsdmrc for tsdm configuration
 
 /**
  * @param path {string}
+ * @param filter {function} (pkg)
  * @param cb {function} (err, array of packages with `typescript.definition`)
  */
-function list(path, cb) {
+function list(path, filter, cb) {
   var rootNode;
   rpt(path, function (node) {
     return (rootNode || (rootNode = node)) === node;
@@ -26,7 +27,7 @@ function list(path, cb) {
     var defModules = data.children
       .reduce(function (r, node) {
         var pkg = node.package;
-        if (pkg.typescript && pkg.typescript.definition) {
+        if (filter(pkg)) {
           // _id: '<name>@<version>'
           pkg._where = node.realpath;
           r.push(pkg);
@@ -109,8 +110,7 @@ function commit(file, pkgs, cb) {
   ].concat(
     // add "/// <reference path="<alias>/<typings_from_package>.d.ts" />"s
     pkgs.reduce(function (r, pkg) {
-      var def = pkg.typescript.definition;
-      typeof def === 'string' && (def = [def]);
+      var def = [].concat(pkg.typescript.definition);
       return r.concat(def.map(function (def) {
         return '/// <reference path="' + pkg.name + '/' + def + '" />';
       }));
@@ -131,7 +131,12 @@ module.exports = {
    * @param cb {function} (err, pkgs)
      */
   list: function (o, cb) {
-    list(o.path, cb);
+    list(o.path,
+      function (pkg) {
+        return (pkg.typescript && pkg.typescript.definition) ||
+          (pkg.typings && pkg.typingsTarget);
+      },
+      cb);
   },
   /**
    * @param o {object}
@@ -139,41 +144,117 @@ module.exports = {
    * @param cb {function} (err)
    */
   install: function (o, cb) {
-    list(o.path, function (err, pkgs) {
-      if (err) {
-        return cb(err);
-      }
-      // create typings/ directory
-      var defRoot = path.join(o.path, 'typings');
-      mkdirp(defRoot, function (err) {
+    list(o.path,
+      function (pkg) { return pkg.typescript && pkg.typescript.definition; },
+      function (err, pkgs) {
         if (err) {
           return cb(err);
         }
-        // delete previous symlinks
-        rm(defRoot,
-          function (stats) {
-            return stats.isSymbolicLink();
-          },
-          function (err) {
-            if (err) {
-              return cb(err);
-            }
-            // re-symlink
+        // create typings/ directory
+        var defRoot = path.join(o.path, 'typings');
+        mkdirp(defRoot, function (err) {
+          if (err) {
+            return cb(err);
+          }
+          // delete previous symlinks
+          rm(defRoot,
+            function (stats) {
+              return stats.isSymbolicLink();
+            },
+            function (err) {
+              if (err) {
+                return cb(err);
+              }
+              // re-symlink
 
-            // N.B. strictly speaking symlinks are unnecessary, but some
-            // tools (like WebStorm 11) do not recognize declarations unless
-            // DefinitelyTyped/tsd pattern is used
+              // N.B. strictly speaking symlinks are unnecessary, but some
+              // tools (like WebStorm 11) do not recognize declarations unless
+              // DefinitelyTyped/tsd pattern is used
 
-            link(pkgs.map(function (pkg) { return pkg._where; }), defRoot,
-              function (err) {
-                if (err) {
-                  return cb(err);
-                }
-                // re-generate typings/tsd.d.ts
-                commit(path.join(defRoot, 'tsd.d.ts'), pkgs, cb);
+              link(pkgs.map(function (pkg) { return pkg._where; }), defRoot,
+                function (err) {
+                  if (err) {
+                    return cb(err);
+                  }
+                  // re-generate typings/tsd.d.ts
+                  commit(path.join(defRoot, 'tsd.d.ts'), pkgs, cb);
+                });
+            });
+        });
+      });
+  },
+  rewire: function (o, cb) {
+    list(o.path,
+      function (pkg) { return pkg.typings && pkg.typingsTarget; },
+      function (err, pkgs) {
+        if (err) {
+          return cb(err);
+        }
+        // fixme: do not mix promises & callbacks
+        Promise
+          // resolve external type declarations
+          .all(pkgs.map(function (pkg) {
+            return new Promise(function (resolve, reject) {
+              resolveModule(pkg.typingsTarget, {basedir: pkg._where},
+                function (err, location) {
+                  if (err) {
+                    return reject(err);
+                  }
+                  pkgDir(location)
+                    .then(function (dir) {
+                      var base = path.relative(dir, pkg._where);
+                      resolve({
+                        source: path.join(pkg._where, 'package.json'),
+                        path: dir,
+                        typings: [].concat(pkg.typings).map(function (t) {
+                          return path.join(base, t);
+                        })
+                      });
+                    })
+                    .catch(reject);
+                });
+            });
+          }))
+          // update packages with external type declarations
+          .then(function (uu) {
+            return Promise.all(uu.map(function (u) {
+              var file = path.join(u.path, 'package.json');
+              return new Promise(function (resolve, reject) {
+                fs.readFile(file, function (err, data) {
+                  if (err) {
+                    return reject(err);
+                  }
+                  var json;
+                  try {
+                    json = JSON.parse(data);
+                  } catch (e) {
+                    return reject(new Error('Failed to parse ' + file +
+                      ' (not a valid JSON)'));
+                  }
+                  json._tsdm || (json._tsdm = json.typings || true);
+                  if (u.typings.length > 1) {
+                    console.warn('WARN: ' + u.source + ' ' +
+                      'contains multiple typings. ' +
+                      'Only the first one will be wired in');
+                  }
+                  json.typings = u.typings[0];
+                  fs.writeFile(file, JSON.stringify(json, null, 2),
+                    function (err) {
+                      if (err) {
+                        return reject(err);
+                      }
+                      console.log('Updated ' +
+                        path.resolve(process.cwd(), file));
+                      resolve();
+                    });
+                });
               });
+            }));
+          }).then(function () {
+            process.nextTick(cb);
+          }).catch(function (err) {
+            process.nextTick(cb.bind(null, err));
           });
       });
-    });
   }
 };
