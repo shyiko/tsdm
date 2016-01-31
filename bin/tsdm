@@ -1,57 +1,44 @@
 #!/usr/bin/env node
 
-var tsdm = require('../src');
-var pkgDir = require('pkg-dir');
+var rewire = require('../src').rewire;
+var pkg = require('pkg-dir');
 var yargs = require('yargs')
-  .usage('TypeScript declaration manager (https://github.com/shyiko/tsdm)' +
-    '\n\nUsage: tsdm <command>')
-  .command('ls', 'List installed typings (aliases: list, la, ll)')
-  .command('install', 'Generate `typings/tsd.d.ts` ' +
-    '(required only for packages that are not tsdm-compatible) (aliases: i)')
-  .command('rewire', 'Wire declaration providers in ' +
+  .usage('No worries TypeScript declaration manager (https://github.com/shyiko/tsdm)' +
+    '\n\nUsage: tsdm')
+  .command('rewire', 'Rewire type definition providers ' +
     '(should be called after `npm install`) (aliases: r)')
   .help('h').alias('h', 'help')
   .version(function () { return require('../package').version; })
   .strict();
 
-function fail(err) {
-  console.error(err.stack);
-  process.exit(4);
-}
-
-pkgDir(process.cwd())
+pkg(process.cwd())
   .then(function (path) {
     var command = process.argv[2];
     switch (command) {
-      case 'ls':
-      case 'list':
-      case 'la':
-      case 'll':
-        tsdm.list({path: path}, function (err, data) {
-          if (err) {
-            fail(err);
-          }
-          data.forEach(function (pkg) {
-            console.log('* ' + pkg._id + (pkg.typingsTarget ?
-              ' (target: ' + pkg.typingsTarget + ')' : ''));
-          });
-        });
-        break;
-      case 'i':
-      case 'install':
-        tsdm.install({path: path}, function (err) {
-          if (err) {
-            fail(err);
-          }
-        });
-        break;
       case 'r':
       case 'rewire':
-        tsdm.rewire({path: path}, function (err) {
-          if (err) {
-            fail(err);
-          }
-        });
+        rewire({path: path})
+          .on('wired', function (e) {
+            switch (e.type) {
+              case 'ambient':
+                console.log('Linked ' +
+                  path.relative(process.cwd(), e.pkg._where));
+                break;
+              case 'scoped':
+                console.log('Updated ' +
+                  path.relative(process.cwd(), e.file));
+                break;
+              default:
+                throw new Error();
+            }
+          })
+          .on('warn', function (e) {
+            console.warn('WARN: ' + e);
+          })
+          .on('error', function (err) {
+            console.error(err.stack);
+            process.exit(4);
+          });
         break;
       default:
         yargs.showHelp();
