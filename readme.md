@@ -33,14 +33,14 @@ out-of-the-box use `npm` to install external definition (e.g. `npm install --sav
 After that - run `tsdm rewire`. That's it.
 
 ```sh
-npm i retyped/react-tsd#v0.14.6 --save-dev && tsdm rewire
+npm i retyped-react-tsd-ambient --save-dev && tsdm rewire
 ```
 
-> NOTE that `compilerOptions.moduleResolution` have to be set to 
+> NOTE that `compilerOptions.moduleResolution` has to be set to 
 [node](https://github.com/Microsoft/TypeScript/wiki/Typings-for-npm-packages) (in your tsconfig.json)
 
 > Most (if not all) [DefinitelyTyped](https://github.com/DefinitelyTyped/DefinitelyTyped) typings are available through [retyped](https://github.com/retyped).
-[npmsearch](http://npmsearch.com/?q=keywords:tsd%20keywords:tsd-ambient) is an excellent place to find many more.
+[npmsearch](http://npmsearch.com/?q=keywords:tsd%20AND%20chai) is an excellent place to find many more.
   
 > If you need a quick way to add declaration for the module that doesn't yet have definition available on `npm` you
 can add it to `<project root>/.tsdm.d.ts`. This is meant a temporary solution only. Please consider contributing  missing 
