@@ -36,6 +36,7 @@
     "typescript",
     "typings",
     "defintions",
+    "tsd",
     "manager"
   ]
 }
