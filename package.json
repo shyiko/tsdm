@@ -26,7 +26,7 @@
     "eslint-config-standard": "^4.4.0",
     "eslint-plugin-standard": "^1.3.1",
     "mocha": "^2.3.4",
-    "mock-fs": "shyiko/mock-fs#fs_access",
+    "mock-fs": "^3.7.0",
     "sinon": "^1.17.3"
   },
   "scripts": {
