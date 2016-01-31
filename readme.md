@@ -4,6 +4,8 @@
   </a>
 </p>
 
+[![Build Status](https://travis-ci.org/shyiko/tsdm.svg?branch=master)](https://travis-ci.org/shyiko/tsdm)
+
 No worries TypeScript definition manager.
  
 > \* experimental
