@@ -12,6 +12,8 @@ var yargs = require('yargs')
   .version(function () { return require('../package').version; })
   .strict();
 
+// todo: chalk
+
 pkg(process.cwd())
   .then(function (root) {
     var command = process.argv[2];
@@ -22,8 +24,15 @@ pkg(process.cwd())
           .on('wired', function (e) {
             switch (e.type) {
               case 'ambient':
+                var pkg = e.pkg;
+                var ts = pkg.typescript;
+                var def = ts && [].concat(ts.definition || ts.definitions)
+                    .map(function (name) {
+                      return path.basename(name);
+                    });
                 console.log('Linked ' +
-                  path.relative(process.cwd(), e.pkg._where));
+                  path.relative(process.cwd(), pkg._where) +
+                  (def ? ' (' + def.join(', ') + ')' : ''));
                 break;
               case 'scoped':
                 console.log('Updated ' +

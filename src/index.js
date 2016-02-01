@@ -105,7 +105,8 @@ function commit(file, refs, cb) {
 
 function rewireAmbientTypings(o, ee, cb) {
   list(o.path,
-    function (pkg) { return pkg.typescript && pkg.typescript.definition; },
+    function (pkg) { return pkg.typescript &&
+      (pkg.typescript.definition || pkg.typescript.definitions); },
     function (err, pkgs) {
       if (err) {
         return cb(err);
@@ -147,7 +148,8 @@ function rewireAmbientTypings(o, ee, cb) {
                   ee.emit('wired', {type: 'ambient', pkg: pkg});
                 });
                 var refs = pkgs.reduce(function (r, pkg) {
-                  var def = [].concat(pkg.typescript.definition);
+                  var def = [].concat(pkg.typescript.definition ||
+                    pkg.typescript.definitions);
                   return r.concat(def.map(function (def) {
                     return path.join(pkg.name, def);
                   }));
