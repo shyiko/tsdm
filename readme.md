@@ -18,6 +18,7 @@ No worries TypeScript definition manager.
 * No `/// <reference path="..."/>`s all over your code.
 * No special `<insert your definition manager>.json`. `package.json` is all you need. 
 * Easy version management.
+* One responsibility - wiring type definitions in. Installation, shinkwrapping, etc. is all offloaded on to `npm`. 
 * Nothing to learn. If you know how to use `npm` - you're pretty much all set.
 
 ## Installation
