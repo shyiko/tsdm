@@ -105,8 +105,10 @@ function commit(file, refs, cb) {
 
 function rewireAmbientTypings(o, ee, cb) {
   list(o.path,
-    function (pkg) { return pkg.typescript &&
-      (pkg.typescript.definition || pkg.typescript.definitions); },
+    function (pkg) {
+      var t = pkg.typescript;
+      return t && (t.definition || t.definitions);
+    },
     function (err, pkgs) {
       if (err) {
         return cb(err);
