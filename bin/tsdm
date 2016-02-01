@@ -3,6 +3,7 @@
 var path = require('path');
 var rewire = require('../src').rewire;
 var pkg = require('pkg-dir');
+var chalk = require('chalk');
 var yargs = require('yargs')
   .usage('No worries TypeScript declaration manager (https://github.com/shyiko/tsdm)' +
     '\n\nUsage: tsdm')
@@ -11,8 +12,6 @@ var yargs = require('yargs')
   .help('h').alias('h', 'help')
   .version(function () { return require('../package').version; })
   .strict();
-
-// todo: chalk
 
 pkg(process.cwd())
   .then(function (root) {
@@ -30,13 +29,13 @@ pkg(process.cwd())
                     .map(function (name) {
                       return path.basename(name);
                     });
-                console.log('Linked ' +
-                  path.relative(process.cwd(), pkg._where) +
-                  (def ? ' (' + def.join(', ') + ')' : ''));
+                console.log(chalk.green('Linked ') +
+                  chalkifyPath(path.relative(process.cwd(), pkg._where)) +
+                  chalk.gray((def ? ' (' + def.join(', ') + ')' : '')));
                 break;
               case 'scoped':
-                console.log('Updated ' +
-                  path.relative(process.cwd(), e.file));
+                console.log(chalk.green('Updated ') +
+                  chalkifyPath(path.relative(process.cwd(), e.file)));
                 break;
               default:
                 throw new Error();
@@ -58,3 +57,11 @@ pkg(process.cwd())
         process.exit(3);
     }
   });
+
+function chalkifyPath(p) {
+  var d;
+  if (~(d = p.lastIndexOf(path.sep))) {
+    p = chalk.gray(p.slice(0, d + 1)) + p.slice(d + 1)
+  }
+  return p;
+}

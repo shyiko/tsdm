@@ -12,6 +12,7 @@
   "main": "./src/index.js",
   "dependencies": {
     "async": "^1.5.2",
+    "chalk": "^1.1.1",
     "debuglog": "^1.0.1",
     "mkdirp": "^0.5.1",
     "pkg-dir": "^1.0.0",
