@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+var path = require('path');
 var rewire = require('../src').rewire;
 var pkg = require('pkg-dir');
 var yargs = require('yargs')
@@ -12,12 +13,12 @@ var yargs = require('yargs')
   .strict();
 
 pkg(process.cwd())
-  .then(function (path) {
+  .then(function (root) {
     var command = process.argv[2];
     switch (command) {
       case 'r':
       case 'rewire':
-        rewire({path: path})
+        rewire({path: root})
           .on('wired', function (e) {
             switch (e.type) {
               case 'ambient':
