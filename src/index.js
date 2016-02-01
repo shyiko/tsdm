@@ -160,6 +160,8 @@ function rewireAmbientTypings(o, ee, cb) {
                 fs.stat(override, function (err, stats) {
                   if (!err && stats.isFile()) {
                     refs.push(path.relative(defRoot, override));
+                    ee.emit('wired', {type: 'ambient',
+                      pkg: {_where: override}});
                   }
                   // re-generate typings/tsd.d.ts
                   commit(path.join(defRoot, 'tsd.d.ts'), refs, cb);
