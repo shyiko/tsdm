@@ -1,7 +1,7 @@
 {
   "name": "tsdm",
   "description": "No worries TypeScript definition manager",
-  "version": "0.1.0-0",
+  "version": "0.1.0-1",
   "author": "Stanley Shyiko <stanley.shyiko@gmail.com>",
   "license": "MIT",
   "repository": {
