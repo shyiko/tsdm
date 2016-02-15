@@ -13,9 +13,11 @@
   "dependencies": {
     "async": "^1.5.2",
     "chalk": "^1.1.1",
-    "debuglog": "^1.0.1",
+    "findup": "^0.1.5",
+    "lodash.assign": "^4.0.2",
+    "lodash.pluck": "^3.1.2",
     "mkdirp": "^0.5.1",
-    "pkg-dir": "^1.0.0",
+    "rcfg": "^0.1.0",
     "read-package-tree": "^5.1.2",
     "resolve": "^1.1.7",
     "rimraf": "^2.5.1",
