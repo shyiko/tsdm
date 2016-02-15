@@ -2,7 +2,7 @@
 
 var path = require('path');
 var rewire = require('../src').rewire;
-var pkg = require('pkg-dir');
+var up = require('findup');
 var chalk = require('chalk');
 var yargs = require('yargs')
   .usage('No worries TypeScript declaration manager (https://github.com/shyiko/tsdm)' +
@@ -13,50 +13,53 @@ var yargs = require('yargs')
   .version(function () { return require('../package').version; })
   .strict();
 
-pkg(process.cwd())
-  .then(function (root) {
-    var command = process.argv[2];
-    switch (command) {
-      case 'r':
-      case 'rewire':
-        rewire({path: root})
-          .on('wired', function (e) {
-            switch (e.type) {
-              case 'ambient':
-                var pkg = e.pkg;
-                var ts = pkg.typescript;
-                var def = ts && [].concat(ts.definition || ts.definitions)
-                    .map(function (name) {
-                      return path.basename(name);
-                    });
-                console.log(chalk.green('Linked ') +
-                  chalkifyPath(path.relative(process.cwd(), pkg._where)) +
-                  chalk.gray((def ? ' (' + def.join(', ') + ')' : '')));
-                break;
-              case 'scoped':
-                console.log(chalk.green('Updated ') +
-                  chalkifyPath(path.relative(process.cwd(), e.file)));
-                break;
-              default:
-                throw new Error();
-            }
-          })
-          .on('warn', function (e) {
-            console.warn('WARN: ' + e);
-          })
-          .on('error', function (err) {
-            console.error(err.stack);
-            process.exit(4);
-          });
-        break;
-      default:
-        yargs.showHelp();
-        if (command) {
-          console.error('Unknown command `' + command + '`.');
-        }
-        process.exit(3);
-    }
-  });
+up(process.cwd(), 'package.json', function (err, projectRoot) {
+  if (err) {
+    console.error(err.message);
+    process.exit(5);
+  }
+  var command = process.argv[2];
+  switch (command) {
+    case 'r':
+    case 'rewire':
+      rewire({path: projectRoot})
+        .on('wired', function (e) {
+          switch (e.type) {
+            case 'ambient':
+              var pkg = e.pkg;
+              var ts = pkg.typescript;
+              var def = ts && [].concat(ts.definition || ts.definitions)
+                  .map(function (name) {
+                    return path.basename(name);
+                  });
+              console.log(chalk.green('Linked ') +
+                chalkifyPath(path.relative(process.cwd(), pkg._where)) +
+                chalk.gray((def ? ' (' + def.join(', ') + ')' : '')));
+              break;
+            case 'scoped':
+              console.log(chalk.green('Updated ') +
+                chalkifyPath(path.relative(process.cwd(), e.file)));
+              break;
+            default:
+              throw new Error();
+          }
+        })
+        .on('warn', function (e) {
+          console.warn('WARN: ' + e);
+        })
+        .on('error', function (err) {
+          console.error(err.stack);
+          process.exit(4);
+        });
+      break;
+    default:
+      yargs.showHelp();
+      if (command) {
+        console.error('Unknown command `' + command + '`.');
+      }
+      process.exit(3);
+  }
+});
 
 function chalkifyPath(p) {
   var d;
