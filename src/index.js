@@ -126,7 +126,7 @@ function rewireAmbient(o, cb) {
         rm.bind(null, defRoot, function (st) { return st.isSymbolicLink(); }),
         // create typings/* symlinks (disabled by default)
         // required in case of "excluded" node_modules/ + WebStorm 11
-        o.link && link.bind(null, pluck(pkgs, '_where'), defRoot),
+        o.symlink && link.bind(null, pluck(pkgs, '_where'), defRoot),
         // update typings/tsd.d.ts
         function (cb) {
           pkgs.forEach(function (pkg) {
@@ -136,7 +136,8 @@ function rewireAmbient(o, cb) {
             var def = [].concat(pkg.typescript.definition ||
               pkg.typescript.definitions);
             return r.concat(def.map(function (def) {
-              return path.join(pkg.name, def);
+              return path.join(o.symlink ? pkg.name
+                : path.relative(defRoot, pkg._where), def);
             }));
           }, []);
           var override = path.join(o.path, '.tsdm.d.ts');
@@ -231,6 +232,7 @@ module.exports = {
       async.waterfall([
         rc.bind(null, 'tsdm', {cwd: o.path}),
         function (rc, cb) {
+          debug('Loaded RC ' + JSON.stringify(rc));
           ee.emit('rc', rc);
           var cfg = assign(rc, o);
           async.parallel([

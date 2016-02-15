@@ -6,7 +6,7 @@ var tsdm = require('../src');
 
 describe('tsdm', function () {
   describe('#rewire()', function () {
-    it('should symlink ambient definitions',
+    it('should generate typings/tsd.d.ts referencing ambient definitions',
       function (cb) {
         mock({
           '/project': {
@@ -22,7 +22,36 @@ describe('tsdm', function () {
           }
         });
         var spy = sinon.spy();
-        tsdm.rewire({path: '/project', link: true})
+        tsdm.rewire({path: '/project'})
+          .on('wired', spy)
+          .on('error', sinon.stub().throws())
+          .on('end', function () {
+            expect(spy.callCount).to.be.equal(1);
+            // using fs.*Sync is okay because of mock-fs binding
+            var data = fs.readFileSync('/project/typings/tsd.d.ts', 'utf8');
+            expect(data.split('\n')).to.contain(
+              '/// <reference path="../node_modules/a-tsd/a.d.ts" />');
+            cb();
+          });
+      });
+    it('should symlink ambient definitions if "symlink" mode is on',
+      function (cb) {
+        mock({
+          '/project': {
+            'package.json': JSON.stringify({name: 'project', version: '0.1.0'}),
+            'node_modules': {
+              'a-tsd': {
+                'package.json':
+                  JSON.stringify({name: 'a-tsd', version: '0.1.0',
+                    typescript: {definition: 'a.d.ts'}}),
+                'a.d.ts': 'declare module "a" { export default 0; }'
+              }
+            },
+            '.tsdmrc': JSON.stringify({symlink: true})
+          }
+        });
+        var spy = sinon.spy();
+        tsdm.rewire({path: '/project'})
           .on('wired', spy)
           .on('error', sinon.stub().throws())
           .on('end', function () {
