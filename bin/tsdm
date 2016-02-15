@@ -15,7 +15,7 @@ var yargs = require('yargs')
 
 up(process.cwd(), 'package.json', function (err, projectRoot) {
   if (err) {
-    console.error(err.message);
+    console.error('Couldn\'t resolve project root (' + err.message + ')');
     process.exit(5);
   }
   var command = process.argv[2];
