@@ -126,7 +126,7 @@ function rewireAmbient(o, cb) {
         rm.bind(null, defRoot, function (st) { return st.isSymbolicLink(); }),
         // create typings/* symlinks (disabled by default)
         // required in case of "excluded" node_modules/ + WebStorm 11
-        link.bind(null, pluck(pkgs, '_where'), defRoot),
+        o.link && link.bind(null, pluck(pkgs, '_where'), defRoot),
         // update typings/tsd.d.ts
         function (cb) {
           pkgs.forEach(function (pkg) {

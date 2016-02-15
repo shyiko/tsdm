@@ -22,7 +22,7 @@ describe('tsdm', function () {
           }
         });
         var spy = sinon.spy();
-        tsdm.rewire({path: '/project'})
+        tsdm.rewire({path: '/project', link: true})
           .on('wired', spy)
           .on('error', sinon.stub().throws())
           .on('end', function () {
