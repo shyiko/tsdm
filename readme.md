@@ -47,7 +47,7 @@ npm i retyped-react-tsd-ambient --save-dev && tsdm rewire
 can add it to `<project root>/.tsdm.d.ts`. This is meant a temporary solution only. Please consider contributing  missing 
 typings back to the community.
 
-**DEMO @** [shyiko/typescript-boilerplate](https://github.com/shyiko/typescript-boilerplate)
+**DEMO @** [shyiko/typescript-starter-pack](https://github.com/shyiko/typescript-starter-pack) (coming soon)
 
 ## License
 
